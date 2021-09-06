@@ -48,6 +48,7 @@ const useStyles = makeStyles((muiTheme) => ({
     borderRadius: muiTheme.spacing(0.5),
     maxWidth: 320,
     width: "100%",
+    margin: "0 16px",
   },
   modalContent: {
     paddingRight: 0,

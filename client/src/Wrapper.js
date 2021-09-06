@@ -18,6 +18,9 @@ const useStyles = makeStyles((muiTheme) => ({
     backgroundColor: `${vaxxedTheme.palette.primary.main} !important`,
     border: `1px solid ${vaxxedTheme.palette.border.main}`,
   },
+  alert: {
+    backgroundColor: "red !important",
+  },
 }));
 
 const Wrapper = () => {
@@ -37,30 +40,9 @@ const Wrapper = () => {
       }}
     >
       <SnackbarProvider
-        classes={{
-          containerAnchorOriginTopCenter: classes.alert,
-        }}
         anchorOrigin={{
           vertical: "top",
           horizontal: "center",
-        }}
-        iconVariant={{
-          success: (
-            <SuccessIcon
-              style={{
-                marginRight: 12,
-                color: vaxxedTheme.palette.success.main,
-              }}
-            />
-          ),
-          error: (
-            <ErrorIcon
-              style={{
-                marginRight: 12,
-                color: vaxxedTheme.palette.error.main,
-              }}
-            />
-          ),
         }}
         classes={{
           variantSuccess: classes.notificationContainer,
@@ -71,6 +53,7 @@ const Wrapper = () => {
         preventDuplicate
         ref={notistackRef}
         autoHideDuration={2500}
+        hideIconVariant
         action={(key) => (
           <IconButton
             color="inherit"
