@@ -1,18 +1,20 @@
 # Isolated portfolio deployment
 
-Status: implementation verified locally; live deployment in progress. Do not advertise the intended URL until the public smoke test passes.
+Live demo: **https://vaxx-app-demo.pages.dev** (verified 18 September 2026).
+
+Public checks passed for the sample calendar, live clinic and patient list, browser refresh, appointment creation/deletion, simulated reminder preview, cookie security, origin checks and logout revocation. Direct Render API access is rejected.
 
 | Resource | Parent | App resource |
 | --- | --- | --- |
-| Cloudflare Pages Free | `msiric-public-demos`, account `f8fd075624b85e729e46d15d374e59ed` | intended `vaxx-app-demo` |
-| Render Free | `msiric-public-demos`, workspace `tea-damk99ajnfac73b07010` | project `prj-damk9pn40ujc73b90ei0`, environment `evm-damk9pn40ujc73b90ej0` |
+| Cloudflare Pages Free | `msiric-public-demos`, account `f8fd075624b85e729e46d15d374e59ed` | `vaxx-app-demo` |
+| Render Free | `msiric-public-demos`, workspace `tea-damk99ajnfac73b07010` | project `prj-damk9pn40ujc73b90ei0`, environment `evm-damk9pn40ujc73b90ej0`; service `srv-damm7jou01pc73aq1avg` |
 | Neon Free | `msiric-public-demos`, org `org-damp-glade-19263338` | project `autumn-tooth-00495173`, database `vaxx_demo`, PostgreSQL 16, Frankfurt |
 
 ## Deploy
 
 - Backend: use the public repository's `codex/restore-public-demo` branch, settings in `render.yaml`, and the **existing new demo project's Demo environment**. `plan: free` is mandatory. No Render database, disk, cron, or paid upgrade is needed. Build compiles the server once. Startup runs explicit migrations, then starts HTTP only after the database is ready.
 - Render environment: `DEMO_MODE=true`, `NODE_ENV=production`, `CLIENT_ORIGIN` equal to the actual Pages production origin, `PG_DB_URL` from the isolated Neon project, and `DATABASE_HOST_EXPECTED` equal to that exact host. Use independent random access/refresh secrets and a shared random `DEMO_PROXY_SECRET`.
-- Frontend: `npm --prefix client ci && npm run build:client`, then `wrangler pages deploy client/build --project-name vaxx-app-demo --branch main`. The explicit account ID in `wrangler.jsonc` must match the table above. The root `functions/` directory is deployed by Wrangler.
+- Frontend: `npm --prefix client ci && npm run build:client`, then `CLOUDFLARE_ACCOUNT_ID=f8fd075624b85e729e46d15d374e59ed wrangler pages deploy client/build --project-name vaxx-app-demo --branch main`. Pages does not accept `account_id` in its config: explicitly set `CLOUDFLARE_ACCOUNT_ID` to the parent in the table for every Wrangler command. The root `functions/` directory is deployed by Wrangler.
 - Pages secrets: `API_ORIGIN` is the new Render service's HTTPS origin; `DEMO_PROXY_SECRET` must match Render. Redeploy after setting/changing secrets. Never use `VITE_` for secrets or embed database credentials in frontend code.
 - Smoke test: sample calendar/list, start live clinic, add/delete appointment, refresh browser, logout, invalid/cross-user requests, and direct Render API rejection. Confirm cookies are Secure, HttpOnly, SameSite=Lax and restricted to `/api/auth`.
 
