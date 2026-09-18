@@ -1,5 +1,7 @@
 # Isolated portfolio deployment
 
+Shared references: [portfolio operations](https://github.com/msiric/feasible-route-mapping/blob/master/docs/PORTFOLIO_HOSTING.md), [future-project playbook](https://github.com/msiric/feasible-route-mapping/blob/master/docs/FREE_DEMO_HOSTING.md), [deployment record template](https://github.com/msiric/feasible-route-mapping/blob/master/docs/PROJECT_HOSTING_TEMPLATE.md).
+
 Live demo: **https://vaxx-app-demo.pages.dev** (verified 18 September 2026).
 
 Public checks passed for the sample calendar, live clinic and patient list, browser refresh, appointment creation/deletion, simulated reminder preview, cookie security, origin checks and logout revocation. Direct Render API access is rejected.
@@ -14,7 +16,7 @@ Public checks passed for the sample calendar, live clinic and patient list, brow
 
 - Backend: use the public repository's `codex/restore-public-demo` branch, settings in `render.yaml`, and the **existing new demo project's Demo environment**. `plan: free` is mandatory. No Render database, disk, cron, or paid upgrade is needed. Build compiles the server once. Startup runs explicit migrations, then starts HTTP only after the database is ready.
 - Render environment: `DEMO_MODE=true`, `NODE_ENV=production`, `CLIENT_ORIGIN` equal to the actual Pages production origin, `PG_DB_URL` from the isolated Neon project, and `DATABASE_HOST_EXPECTED` equal to that exact host. Use independent random access/refresh secrets and a shared random `DEMO_PROXY_SECRET`.
-- Frontend: `npm --prefix client ci && npm run build:client`, then `CLOUDFLARE_ACCOUNT_ID=f8fd075624b85e729e46d15d374e59ed wrangler pages deploy client/build --project-name vaxx-app-demo --branch main`. Pages does not accept `account_id` in its config: explicitly set `CLOUDFLARE_ACCOUNT_ID` to the parent in the table for every Wrangler command. The root `functions/` directory is deployed by Wrangler.
+- Frontend: follow the explicit build/upload commands below from the repository root. Pages rejects `account_id` in its config; every Wrangler call needs the correct account and isolated CLI profile. Wrangler includes the root `functions/` directory.
 - Pages secrets: `API_ORIGIN` is the new Render service's HTTPS origin; `DEMO_PROXY_SECRET` must match Render. Redeploy after setting/changing secrets. Never use `VITE_` for secrets or embed database credentials in frontend code.
 - Smoke test: sample calendar/list, start live clinic, add/delete appointment, refresh browser, logout, invalid/cross-user requests, and direct Render API rejection. Confirm cookies are Secure, HttpOnly, SameSite=Lax and restricted to `/api/auth`.
 
@@ -29,3 +31,24 @@ Cloudflare/Render have no payment method; Render's build spending limit is $0. K
 Database schema synchronization is disabled. Versioned migrations are the only deployment schema changes; the configuration rejects a wrong database name or unexpected remote host and verifies TLS certificates. Roll back code by redeploying a previous tested commit. Do not drop/reseed a database as a startup action.
 
 Secrets stay in provider secrets/environment settings and ignored local files. Do not commit them. Synthetic sessions expire after 24 hours and are physically pruned on subsequent session creation. A restart resets per-process request counters; storage caps remain database-enforced.
+
+## Source and release branches
+
+The restoration is merged into GitHub `main`. Render currently follows the retained `codex/restore-public-demo` branch with auto-deploy Off; merging source does not deploy it. For a future backend release from the default branch, deliberately update the existing demo service's source branch and `render.yaml` to `main`, then manually deploy a tested commit. Do not create another service.
+
+Pages uses Direct Upload and its production label is **`main`**, independently of the source checkout. Another `--branch` can create only a preview. Verify the root public URL and its asset names after upload. Markdown-only updates require no hosting deployment.
+
+## Frontend commands
+
+Replace the profile placeholder with the existing private demo CLI directory. Authenticate and confirm the exact account there before publishing.
+
+```sh
+export CLOUDFLARE_ACCOUNT_ID=f8fd075624b85e729e46d15d374e59ed
+export XDG_CONFIG_HOME='<absolute-path-to-isolated-demo-cli-profile>'
+npm ci
+npm --prefix client ci
+npm run build:client
+wrangler pages deploy client/build --project-name vaxx-app-demo --branch main
+```
+
+The verified production Pages deployment was `daa75d78`; API commit `2a991070935184b486b3df1933432e74855dfa6e`. A real session after prolonged idle completed in 32.7 seconds on 18 September 2026; this is a measurement, not a guarantee. Current source contains the tests and documentation in addition to deployed runtime code.

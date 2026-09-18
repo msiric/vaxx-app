@@ -42,3 +42,9 @@ Backend: Express 5, TypeORM migrations, PostgreSQL, short-lived JWTs and secure 
 ## License
 
 MIT
+
+## Hosting documentation
+
+- [Deploy and maintain this app](DEPLOYMENT.md).
+- [Portfolio ownership, costs, recovery and maintenance](https://github.com/msiric/feasible-route-mapping/blob/master/docs/PORTFOLIO_HOSTING.md).
+- [Host a future project for $0](https://github.com/msiric/feasible-route-mapping/blob/master/docs/FREE_DEMO_HOSTING.md) and [copy its deployment record template](https://github.com/msiric/feasible-route-mapping/blob/master/docs/PROJECT_HOSTING_TEMPLATE.md).
