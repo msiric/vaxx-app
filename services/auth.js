@@ -22,7 +22,7 @@ export const addNewUser = async ({
       },
     ])
     .execute();
-  console.log(savedUser);
+
   return savedUser;
 };
 
