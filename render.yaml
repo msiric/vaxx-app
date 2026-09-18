@@ -6,7 +6,7 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    branch: codex/restore-public-demo
+    branch: main
     buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
     startCommand: npm run migrate && npm start
     healthCheckPath: /healthz
