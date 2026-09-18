@@ -43,7 +43,7 @@ export const preferencesValidation = Yup.object().shape({
 export const eventValidation = Yup.object().shape({
   patientVaxxed: Yup.string()
     .required("Potrebno polje")
-    .matches(/(first|second)/, "Neispravan izbor"),
+    .oneOf(["first", "second"], "Neispravan izbor"),
   patientName: Yup.string()
     .required("Potrebno je ime pacijenta")
     .min(5, "Ime pacijenta mora sadržavati minimalno 5 znakova")
@@ -70,7 +70,7 @@ export const eventValidation = Yup.object().shape({
   patientVaccine: Yup.string()
     .required("Potrebno je odabrati cjepivo")
     .matches(
-      /(moderna|astrazeneca|pfizer|johnson)/,
+      /^(moderna|astrazeneca|pfizer|johnson)$/,
       "Neispravan izbor cjepiva"
     ),
   vaccineIdentifier: Yup.string()

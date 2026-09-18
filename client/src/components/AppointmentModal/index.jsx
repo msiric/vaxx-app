@@ -14,19 +14,19 @@ import {
 } from "@material-ui/core";
 import { AddCircleRounded as UploadIcon } from "@material-ui/icons";
 import { FormProvider, useForm } from "react-hook-form";
-import AsyncButton from "../../components/AsyncButton/index.js";
+import AsyncButton from "../../components/AsyncButton/index.jsx";
 import { eventValidation } from "../../../../common/validation";
 import SelectInput from "../../controls/SelectInput";
 import AutocompleteInput from "../../controls/AutocompleteInput";
 import TextInput from "../../controls/TextInput";
 import DateFnsUtils from "@date-io/date-fns";
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
-import DateTimeInput from "../../controls/DateTimeInput/index.js";
+import DateTimeInput from "../../controls/DateTimeInput/index.jsx";
 import hrLocale from "date-fns/locale/hr";
 import { postEvent } from "../../services/event.js";
 import { useSnackbar } from "notistack";
 import { vaccines } from "../../../../common/constants";
-import DateInput from "../../controls/DateInput/index.js";
+import DateInput from "../../controls/DateInput/index.jsx";
 import { format, setHours } from "date-fns";
 
 const useStyles = makeStyles((muiTheme) => ({
@@ -43,6 +43,8 @@ const useStyles = makeStyles((muiTheme) => ({
     maxWidth: 320,
     width: "100%",
     margin: "0 16px",
+    maxHeight: "90vh",
+    overflowY: "auto",
   },
   modalContent: {
     paddingRight: 0,
@@ -96,6 +98,7 @@ const AppointmentModal = ({
   const { enqueueSnackbar } = useSnackbar();
 
   const handleConfirm = async (values) => {
+    try {
     const formattedDOB = new Date(new Date(values.patientDOB).toDateString());
 
     const { data } = await postEvent.request({
@@ -112,7 +115,7 @@ const AppointmentModal = ({
       date: eventData.date,
       dob: patientData.dob,
       mbo: patientData.mbo,
-      editable: true,
+      editable: false,
       vaccine: patientData.vaccine,
       identifier: eventData.identifier,
       specifiedDate: eventData.date,
@@ -142,6 +145,7 @@ const AppointmentModal = ({
     enqueueSnackbar(postEvent.success.message, {
       variant: postEvent.success.variant,
     });
+    } catch { /* The shared interceptor displays the request error. */ }
   };
 
   const patientName = watch("patientName");

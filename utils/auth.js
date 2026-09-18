@@ -1,81 +1,32 @@
-import jwt from "jsonwebtoken";
-import { fetchUserByAuth } from "../services/user";
+import jwt from 'jsonwebtoken';
+import { fetchUserByAuth } from '../services/user';
+import { production } from '../config/runtime';
 
-export const createAccessToken = ({ userData }) => {
-  return jwt.sign(
-    {
-      id: userData.id,
-      name: userData.name,
-      jwtVersion: userData.jwtVersion,
-    },
-    process.env.ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-    }
-  );
+export const createAccessToken = ({ userData }) => jwt.sign(
+  { id: userData.id, name: userData.name, jwtVersion: userData.jwtVersion },
+  process.env.ACCESS_TOKEN_SECRET, { algorithm: 'HS256', expiresIn: '15m' }
+);
+export const createRefreshToken = ({ userData }) => jwt.sign(
+  { userId: userData.id, jwtVersion: userData.jwtVersion },
+  process.env.REFRESH_TOKEN_SECRET, { algorithm: 'HS256', expiresIn: '24h' }
+);
+export const sendRefreshToken = (res, token) => {
+  const options = { httpOnly: true, secure: production, sameSite: 'lax', path: '/api/auth' };
+  if (token) res.cookie('jid', token, { ...options, maxAge: 24 * 60 * 60 * 1000 });
+  else res.clearCookie('jid', options);
 };
-
 export const updateAccessToken = async (req, res, next, connection) => {
-  const token = req.cookies.jid;
-  if (!token) return { ok: false, accessToken: "" };
-
-  let payload = null;
-  try {
-    payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-  } catch (err) {
-    console.log(err);
-    return { ok: false, accessToken: "" };
+  const empty = { ok: false, accessToken: '' };
+  if (!req.cookies.jid) return empty;
+  let payload;
+  try { payload = jwt.verify(req.cookies.jid, process.env.REFRESH_TOKEN_SECRET, { algorithms: ['HS256'] }); }
+  catch { sendRefreshToken(res, ''); return empty; }
+  const user = await fetchUserByAuth({ userId: payload.userId, connection });
+  if (!user || user.jwtVersion !== payload.jwtVersion || (user.demoExpiresAt && user.demoExpiresAt <= new Date())) {
+    sendRefreshToken(res, ''); return empty;
   }
-
-  const foundUser = await fetchUserByAuth({
-    userId: payload.userId,
-    connection,
-  });
-
-  if (!foundUser) {
-    return { ok: false, accessToken: "" };
-  }
-
-  if (foundUser.jwtVersion !== payload.jwtVersion) {
-    return { ok: false, accessToken: "" };
-  }
-
-  const tokenPayload = {
-    id: foundUser.id,
-    name: foundUser.name,
-    jwtVersion: foundUser.jwtVersion,
-  };
-
-  const userInfo = {
-    id: foundUser.id,
-    name: foundUser.name,
-    email: foundUser.email,
-    reminders: foundUser.reminders,
-    jwtVersion: foundUser.jwtVersion,
-  };
-
-  sendRefreshToken(res, createRefreshToken({ userData: tokenPayload }));
-
-  return {
-    ok: true,
-    accessToken: createAccessToken({ userData: tokenPayload }),
-    user: userInfo,
-  };
-};
-
-export const createRefreshToken = ({ userData }) => {
-  return jwt.sign(
-    { userId: userData.id, jwtVersion: userData.jwtVersion },
-    process.env.REFRESH_TOKEN_SECRET,
-    {
-      expiresIn: "7d",
-    }
-  );
-};
-
-export const sendRefreshToken = (res, refreshToken) => {
-  res.cookie("jid", refreshToken, {
-    httpOnly: true,
-    path: "api/auth/refresh_token",
-  });
+  sendRefreshToken(res, createRefreshToken({ userData: user }));
+  return { ok: true, accessToken: createAccessToken({ userData: user }), user: {
+    id: user.id, name: user.name, email: user.email, reminders: user.reminders,
+  } };
 };

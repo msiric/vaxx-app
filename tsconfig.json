@@ -2,7 +2,12 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "lib": ["dom", "es6", "es2017", "esnext.asynciterable"],
+    "lib": [
+      "dom",
+      "es6",
+      "es2017",
+      "esnext.asynciterable"
+    ],
     "skipLibCheck": true,
     "sourceMap": true,
     "outDir": "./dist",
@@ -24,5 +29,25 @@
     "baseUrl": ".",
     "allowJs": true
   },
-  "exclude": ["node_modules", "client", "dist"]
+  "exclude": [
+    "node_modules",
+    "client",
+    "dist",
+    "tests",
+    "functions"
+  ],
+  "include": [
+    "app.js",
+    "bin/**/*.js",
+    "common/**/*.js",
+    "config/**/*.js",
+    "controllers/**/*.js",
+    "entities/**/*.ts",
+    "middleware/**/*.js",
+    "migrations/**/*.ts",
+    "routes/**/*.js",
+    "scripts/migrate.js",
+    "services/**/*.js",
+    "utils/**/*.js"
+  ]
 }

@@ -1,49 +1,13 @@
-import argon2 from "argon2";
-import crypto from "crypto";
-import createError from "http-errors";
-import { fetchPatient, removeExistingPatient } from "../services/patient";
-import { global } from "../common/constants";
-import { isArrayEmpty, isObjectEmpty } from "../common/helpers";
-import {
-  emailValidation,
-  eventValidation,
-  loginValidation,
-  passwordValidation,
-  recoveryValidation,
-  signupValidation,
-} from "../common/validation";
-import {
-  fetchEvents,
-  addNewEvent,
-  removeExistingEvent,
-  fetchExistingEvent,
-  fetchExistingEvents,
-  fetchSelectedEvents,
-  editExistingEvent,
-  fetchPreviousEvent,
-} from "../services/event.js";
-import { addNewPatient, editExistingPatient } from "../services/patient.js";
-import {
-  editUserEmail,
-  fetchUserByAuth,
-  fetchUserByEmail,
-  fetchUserByResetToken,
-  fetchUserIdByCreds,
-  fetchUserIdByEmail,
-  fetchUserIdByUsername,
-  fetchUserIdByVerificationToken,
-  fetchUsers,
-} from "../services/user.js";
-import {
-  createAccessToken,
-  createRefreshToken,
-  sendRefreshToken,
-} from "../utils/auth.js";
-import { sendEmail } from "../utils/email.js";
-import { generateUuids, sanitizeData } from "../utils/helpers.js";
-import { add, isBefore } from "date-fns";
-import { sendEmail } from "../utils/email";
-import { vaccines } from "../common/constants";
+import createError from 'http-errors';
+import { fetchPatient, removeExistingPatient, addNewPatient, editExistingPatient } from '../services/patient';
+import { isArrayEmpty, isObjectEmpty } from '../common/helpers';
+import { eventValidation } from '../common/validation';
+import { fetchEvents, addNewEvent, removeExistingEvent, fetchExistingEvent, fetchExistingEvents, fetchSelectedEvents, editExistingEvent, fetchPreviousEvent } from '../services/event';
+import { fetchUsers } from '../services/user';
+import { sendEmail } from '../utils/email';
+import { generateUuids, sanitizeData } from '../utils/helpers';
+import { add, isBefore } from 'date-fns';
+import { vaccines } from '../common/constants';
 
 export const getEvents = async ({ userId, connection }) => {
   const foundEvents = await fetchEvents({ doctorId: userId, connection });
@@ -100,6 +64,7 @@ export const postEvent = async ({
       patientDate,
     })
   );
+  if (process.env.DEMO_MODE === 'true' && await connection.getRepository('Event').count({ where: { doctor: { id: userId } } }) >= 200) throw createError(429, 'This demo session has reached its appointment limit.');
   if (patientVaxxed === "first") {
     const [foundPatient, foundEvents] = await Promise.all([
       fetchPatient({
@@ -124,8 +89,7 @@ export const postEvent = async ({
       eventId: null,
       eventsLink: null,
     });
-    const [savedPatient, savedEvent] = await Promise.all([
-      addNewPatient({
+    const savedPatient = await addNewPatient({
         patientId,
         patientName,
         patientDOB,
@@ -135,8 +99,8 @@ export const postEvent = async ({
         patientLink: eventsLink,
         doctorId: userId,
         connection,
-      }),
-      addNewEvent({
+      });
+    const savedEvent = await addNewEvent({
         eventId,
         patientId,
         patientDate,
@@ -145,8 +109,7 @@ export const postEvent = async ({
         doctorId: userId,
         vaccineIdentifier,
         connection,
-      }),
-    ]);
+      });
     return {
       message: "Termin uspješno kreiran",
       payload: { patient: savedPatient.raw[0], event: savedEvent.raw[0] },
@@ -246,6 +209,9 @@ export const deleteEvent = async ({ eventId, userId, connection }) => {
   });
   if (isObjectEmpty(foundEvent)) {
     throw createError(400, "Termin nije pronađen");
+  }
+  if (foundEvent.type === 'first' && foundEvent.patient.vaxxed === 'second') {
+    throw createError(400, 'Najprije uklonite drugi termin cijepljenja.');
   }
   let deleted = false;
   await removeExistingEvent({

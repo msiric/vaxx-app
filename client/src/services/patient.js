@@ -1,4 +1,4 @@
-import { ax } from "../Interceptor.js";
+import { ax } from "../Interceptor.jsx";
 
 export const getPatients = {
   request: async () => await ax.get("/api/patients"),

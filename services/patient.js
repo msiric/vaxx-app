@@ -12,7 +12,7 @@ export const fetchPatients = async ({ doctorId, connection }) => {
     })
     .orderBy("patient.created", "ASC")
     .getMany();
-  console.log(foundPatients);
+
   return foundPatients;
 };
 
@@ -26,7 +26,7 @@ export const fetchPatient = async ({ patientName, doctorId, connection }) => {
       doctorId,
     })
     .getOne();
-  console.log(foundPatient);
+
   return foundPatient;
 };
 
@@ -61,7 +61,7 @@ export const addNewPatient = async ({
     ])
     .returning("*")
     .execute();
-  console.log(savedPatient);
+
   return savedPatient;
 };
 
@@ -81,7 +81,7 @@ export const editExistingPatient = async ({
     })
     .returning("*")
     .execute();
-  console.log(updatedPatient);
+
   return updatedPatient;
 };
 
@@ -101,7 +101,7 @@ export const updateExistingPatient = async ({
     })
     .returning("*")
     .execute();
-  console.log(updatedPatient);
+
   return updatedPatient;
 };
 
@@ -119,7 +119,7 @@ export const removeExistingPatient = async ({
       doctorId,
     })
     .execute();
-  console.log(deletedPatient);
+
   return deletedPatient;
 };
 
@@ -132,6 +132,6 @@ export const removeUserPatients = async ({ doctorId, connection }) => {
       doctorId,
     })
     .execute();
-  console.log(deletedPatients);
+
   return deletedPatients;
 };
