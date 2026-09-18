@@ -1,0 +1,67 @@
+name: Validate isolated Vaxx demo
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vaxx-demo-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate-server:
+    name: Validate Server
+    if: github.repository == 'msiric/vaxx-app' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: vaxx
+          POSTGRES_PASSWORD: disposable-ci-only
+          POSTGRES_DB: vaxx_demo
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U vaxx -d vaxx_demo"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      NODE_ENV: test
+      DEMO_MODE: 'true'
+      CLIENT_ORIGIN: http://127.0.0.1:5174
+      PG_DB_URL: postgresql://vaxx:disposable-ci-only@127.0.0.1:5432/vaxx_demo
+      DATABASE_HOST_EXPECTED: 127.0.0.1
+      ACCESS_TOKEN_SECRET: ci-access-not-a-production-secret-123456789
+      REFRESH_TOKEN_SECRET: ci-refresh-not-a-production-secret-12345678
+      DEMO_PROXY_SECRET: ci-proxy-not-a-production-secret-1234567890
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22.23.2'
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Verify API, proxy and migrations
+        run: |
+          npm test
+          node scripts/migration-roundtrip.cjs
+  validate-client:
+    name: Validate Client
+    if: github.repository == 'msiric/vaxx-app' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22.23.2'
+      - name: Install and build frontend
+        run: |
+          npm ci
+          npm --prefix client ci
+          npm run build:client
