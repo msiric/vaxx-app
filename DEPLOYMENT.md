@@ -14,7 +14,7 @@ Public checks passed for the sample calendar, live clinic and patient list, brow
 
 ## Deploy
 
-- Backend: use the public repository's `codex/restore-public-demo` branch, settings in `render.yaml`, and the **existing new demo project's Demo environment**. `plan: free` is mandatory. No Render database, disk, cron, or paid upgrade is needed. Build compiles the server once. Startup runs explicit migrations, then starts HTTP only after the database is ready.
+- Backend: use the public repository's `main` branch, settings in `render.yaml`, and the **existing new demo project's Demo environment**. `plan: free` is mandatory. No Render database, disk, cron, or paid upgrade is needed. Build compiles the server once. Startup runs explicit migrations, then starts HTTP only after the database is ready.
 - Render environment: `DEMO_MODE=true`, `NODE_ENV=production`, `CLIENT_ORIGIN` equal to the actual Pages production origin, `PG_DB_URL` from the isolated Neon project, and `DATABASE_HOST_EXPECTED` equal to that exact host. Use independent random access/refresh secrets and a shared random `DEMO_PROXY_SECRET`.
 - Frontend: follow the explicit build/upload commands below from the repository root. Pages rejects `account_id` in its config; every Wrangler call needs the correct account and isolated CLI profile. Wrangler includes the root `functions/` directory.
 - Pages secrets: `API_ORIGIN` is the new Render service's HTTPS origin; `DEMO_PROXY_SECRET` must match Render. Redeploy after setting/changing secrets. Never use `VITE_` for secrets or embed database credentials in frontend code.
@@ -34,7 +34,7 @@ Secrets stay in provider secrets/environment settings and ignored local files. D
 
 ## Source and release branches
 
-The restoration is merged into GitHub `main`. Render currently follows the retained `codex/restore-public-demo` branch with auto-deploy Off; merging source does not deploy it. For a future backend release from the default branch, deliberately update the existing demo service's source branch and `render.yaml` to `main`, then manually deploy a tested commit. Do not create another service.
+The restoration is merged into GitHub `main`. The existing Render service and `render.yaml` now both select `main`; auto-deploy and PR previews remain Off. Manually deploy a tested commit from this branch. Merging source alone does not deploy it. The old restoration branch is retained for history, and no duplicate service is needed. The branch alignment changed the source selector, not the currently running API version.
 
 Pages uses Direct Upload and its production label is **`main`**, independently of the source checkout. Another `--branch` can create only a preview. Verify the root public URL and its asset names after upload. Markdown-only updates require no hosting deployment.
 
@@ -52,3 +52,7 @@ wrangler pages deploy client/build --project-name vaxx-app-demo --branch main
 ```
 
 The verified production Pages deployment was `daa75d78`; API commit `2a991070935184b486b3df1933432e74855dfa6e`. A real session after prolonged idle completed in 32.7 seconds on 18 September 2026; this is a measurement, not a guarantee. Current source contains the tests and documentation in addition to deployed runtime code.
+
+## Continuous validation
+
+The GitHub Actions workflow runs the existing API/proxy tests, migration up/down/up with schema-drift verification, and a clean frontend build on pull requests and pushes to `main`. PostgreSQL is a disposable CI service with test-only credentials; jobs have read-only repository permission, no production secrets, and no deployment access. Standard public runners are used without artifact uploads or persistent caches. Passing CI does not deploy the app.

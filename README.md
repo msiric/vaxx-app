@@ -25,7 +25,7 @@ Use Node 22.13 or later in the Node 22 release line and PostgreSQL 16. Create an
 4. Start `npm start` and, in another terminal, `npm --prefix client start`.
 5. Open `http://127.0.0.1:5174`. The API listens on port 5074.
 
-`npm test` runs integration tests against the disposable local database in `.env`. It refuses non-local databases and deletes only the sessions it creates. `node scripts/migration-roundtrip.cjs` verifies migration up/down/up on an **empty** local database. `npm run build:client` builds the static frontend.
+`npm test` runs integration tests against the disposable local database in `.env`. It refuses non-local databases and deletes only the sessions it creates. `node scripts/migration-roundtrip.cjs` verifies migration up/down/up on an **empty** local database. `npm run build:client` builds the static frontend. GitHub Actions runs these API/proxy tests, the migration roundtrip and a clean frontend build with disposable PostgreSQL on pull requests and pushes to `main`.
 
 ## Architecture
 
