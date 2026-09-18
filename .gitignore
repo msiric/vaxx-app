@@ -76,7 +76,12 @@ typings/
 .env
 .env.development
 .env.production
+.env.*
+!.env.example
+client/build/
 
 # next.js build output
 
 .next
+
+.wrangler/

@@ -15,7 +15,7 @@ export const fetchUsers = async ({ connection }) => {
     .getRepository(User)
     .createQueryBuilder("user")
     .getMany();
-  console.log(foundUsers);
+
   return foundUsers;
 };
 
@@ -33,7 +33,7 @@ export const fetchUserIdByCreds = async ({
       email: userEmail,
     })
     .getOne();
-  console.log(foundUser);
+
   return foundUser ? foundUser.id : null;
 };
 
@@ -46,7 +46,7 @@ export const fetchUserIdByUsername = async ({ userUsername, connection }) => {
       name: userUsername,
     })
     .getOne();
-  console.log(foundUser);
+
   return foundUser ? foundUser.id : null;
 };
 
@@ -59,7 +59,7 @@ export const fetchUserIdByEmail = async ({ userEmail, connection }) => {
       email: userEmail,
     })
     .getOne();
-  console.log(foundUser);
+
   return foundUser ? foundUser.id : null;
 };
 
@@ -72,7 +72,7 @@ export const fetchUserById = async ({ userId, connection }) => {
       userId,
     })
     .getOne();
-  console.log(foundUser);
+
   return foundUser;
 };
 
@@ -85,7 +85,7 @@ export const fetchUserByUsername = async ({ userUsername, connection }) => {
       userUsername,
     })
     .getOne();
-  console.log(foundUser);
+
   return foundUser;
 };
 
@@ -98,7 +98,7 @@ export const fetchUserByEmail = async ({ userEmail, connection }) => {
       email: userEmail,
     })
     .getOne();
-  console.log(foundUser);
+
   return foundUser;
 };
 
@@ -108,7 +108,7 @@ export const fetchUserByAuth = async ({ userId, connection }) => {
     .createQueryBuilder("user")
     .where("user.id = :userId", { userId })
     .getOne();
-  console.log(foundUser);
+
   return foundUser;
 };
 
@@ -125,7 +125,7 @@ export const patchPreferences = async ({
       userId,
     })
     .execute();
-  console.log(updatedUser);
+
   return updatedUser;
 };
 
@@ -138,6 +138,6 @@ export const deactivateExistingUser = async ({ userId, connection }) => {
       userId,
     })
     .execute();
-  console.log(deletedUser);
+
   return deletedUser;
 };

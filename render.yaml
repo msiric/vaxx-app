@@ -1,0 +1,32 @@
+# Deploy ONLY in the msiric-public-demos workspace, Vaxx project's Demo environment.
+# This does not create/attach a paid Render database, disk, cron, or background worker.
+services:
+  - type: web
+    name: vaxx-app-demo-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: codex/restore-public-demo
+    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /healthz
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: 22.23.2
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "true"
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: PG_DB_URL
+        sync: false
+      - key: DATABASE_HOST_EXPECTED
+        sync: false
+      - key: DEMO_PROXY_SECRET
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true

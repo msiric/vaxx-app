@@ -5,8 +5,8 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
-import AppointmentModal from "../components/AppointmentModal/index.js";
-import DeleteModal from "../components/DeleteModal/index.js";
+import AppointmentModal from "../components/AppointmentModal/index.jsx";
+import DeleteModal from "../components/DeleteModal/index.jsx";
 import { getEvents, patchEvent } from "../services/event.js";
 import { getPatients, patchPatient } from "../services/patient.js";
 import { makeStyles } from "@material-ui/core/styles";
@@ -17,9 +17,9 @@ import { useUserStore } from "../contexts/user.js";
 import { vaccines } from "../../../common/constants";
 import { addMinutes, format, isAfter } from "date-fns";
 import { useRef } from "react";
-import ListModal from "../components/ListModal/index.js";
-import SettingsModal from "../components/SettingsModal/index.js";
-import DeactivateModal from "../components/DeactivateModal/index.js";
+import ListModal from "../components/ListModal/index.jsx";
+import SettingsModal from "../components/SettingsModal/index.jsx";
+import DeactivateModal from "../components/DeactivateModal/index.jsx";
 
 const useStyles = makeStyles((muiTheme) => ({
   backdrop: {
@@ -148,11 +148,11 @@ const useStyles = makeStyles((muiTheme) => ({
   },
 }));
 
-const DATES = {};
 const MOBILE_BREAKPOINT = 765;
 const formatDate = (date, form = "dd/MM/yyyy") => format(new Date(date), form);
 
 const Home = () => {
+  const mode = useUserStore(state => state.mode);
   const name = useUserStore((state) => state.name);
   const resetUser = useUserStore((state) => state.resetUser);
 
@@ -184,6 +184,8 @@ const Home = () => {
       loading: false,
     },
   });
+  const datesRef = useRef({});
+  const DATES = datesRef.current;
   const currentDate = useRef();
   const calendarRef = useRef();
 
@@ -210,7 +212,7 @@ const Home = () => {
           vaccine: event.patient.vaccine,
           identifier: event.identifier,
           specifiedDate: event.date,
-          editable: true,
+          editable: false,
           backgroundColor: `${vaccines[event.patient.vaccine].color}`,
         };
       });
@@ -224,7 +226,8 @@ const Home = () => {
 
   const handleLogout = async () => {
     try {
-      await postLogout.request();
+      sessionStorage.removeItem('vaxx-live');
+      if (mode === 'live') await postLogout.request();
       resetUser();
       window.location.href = "/login";
     } catch (err) {
@@ -278,6 +281,7 @@ const Home = () => {
   };
 
   const handleDateClick = (event) => {
+    if (mode === 'sample') return;
     setModal((prevState) => ({
       ...prevState,
       add: {
@@ -294,19 +298,19 @@ const Home = () => {
       ...prevState,
       delete: {
         open: true,
-        title: `${event.event._def.title} (${
-          vaccines[event.event._def.extendedProps.vaccine].label
+        title: `${event.event.title} (${
+          vaccines[event.event.extendedProps.vaccine].label
         })`,
-        dob: `Datum rođenja: ${formatDate(event.event._def.extendedProps.dob)}`,
-        mbo: `MBO: ${event.event._def.extendedProps.mbo}`,
-        identifier: `Šifra cjepiva: ${event.event._def.extendedProps.identifier}`,
+        dob: `Datum rođenja: ${formatDate(event.event.extendedProps.dob)}`,
+        mbo: `MBO: ${event.event.extendedProps.mbo}`,
+        identifier: `Šifra cjepiva: ${event.event.extendedProps.identifier}`,
         appointment: `Termin: ${formatDate(
-          event.event._def.extendedProps.specifiedDate,
+          event.event.extendedProps.specifiedDate,
           "dd/MM/yyyy HH:mm"
         )}`,
-        date: event.event._def.extendedProps.specifiedDate,
-        id: event.event._def.publicId,
-        patient: event.event._def.extendedProps.patientId,
+        date: event.event.extendedProps.specifiedDate,
+        id: event.event.id,
+        patient: event.event.extendedProps.patientId,
       },
     }));
   };
@@ -319,9 +323,7 @@ const Home = () => {
     if (listDays.length) {
       listDays.forEach((listDay) => {
         listDay.onclick = (event) => {
-          const date = event.path.find((item) =>
-            item.className.includes("fc-list-day fc-day")
-          ).dataset.date;
+          const date = event.currentTarget.dataset.date;
           handleDateClick({ date: new Date(date) });
         };
       });
@@ -389,15 +391,15 @@ const Home = () => {
         <div className={classes.header}>
           <h1 className={classes.heading}>Vaxx</h1>
           <div className={classes.headerActions}>
-            <Button variant="outlined" onClick={handleLogout}>
+            {mode === "live" && <Button variant="outlined" onClick={handleLogout}>
               Odjava
-            </Button>
+            </Button>}
           </div>
         </div>
         <div className={classes.headerContent}>
           <div className={classes.vaccineContainer}>
             {Object.values(vaccines).map((vaccine) => (
-              <div className={classes.vaccineType}>
+              <div key={vaccine.label} className={classes.vaccineType}>
                 <div
                   style={{
                     height: 10,
@@ -421,6 +423,7 @@ const Home = () => {
             <Button
               variant="outlined"
               onClick={handleSettingsToggle}
+              disabled={mode === "sample"}
               className={classes.toolbarButtons}
             >
               Postavke
@@ -440,7 +443,7 @@ const Home = () => {
             window.innerWidth < MOBILE_BREAKPOINT ? "listWeek" : "dayGridMonth"
           }
           locale="hr"
-          firstDay="1"
+          firstDay={1}
           events={events}
           buttonText={{
             today: "Danas",

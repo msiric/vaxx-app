@@ -1,3 +1,4 @@
+import { ax } from "../../Interceptor";
 import React, { useEffect, useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@material-ui/core";
 import { AddCircleRounded as UploadIcon } from "@material-ui/icons";
 import { FormProvider, useForm } from "react-hook-form";
-import AsyncButton from "../../components/AsyncButton/index.js";
+import AsyncButton from "../../components/AsyncButton/index.jsx";
 import {
   eventValidation,
   preferencesValidation,
@@ -24,16 +25,16 @@ import AutocompleteInput from "../../controls/AutocompleteInput";
 import TextInput from "../../controls/TextInput";
 import DateFnsUtils from "@date-io/date-fns";
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
-import DateTimeInput from "../../controls/DateTimeInput/index.js";
+import DateTimeInput from "../../controls/DateTimeInput/index.jsx";
 import hrLocale from "date-fns/locale/hr";
 import { postEvent } from "../../services/event.js";
 import { patchPreferences } from "../../services/user.js";
 import { useSnackbar } from "notistack";
 import { vaccines } from "../../../../common/constants";
-import DateInput from "../../controls/DateInput/index.js";
+import DateInput from "../../controls/DateInput/index.jsx";
 import { format, setHours } from "date-fns";
 import { useUserStore } from "../../contexts/user.js";
-import DeactivateModal from "../DeactivateModal/index.js";
+import DeactivateModal from "../DeactivateModal/index.jsx";
 
 const useStyles = makeStyles((muiTheme) => ({
   modalWrapper: {
@@ -49,6 +50,8 @@ const useStyles = makeStyles((muiTheme) => ({
     maxWidth: 320,
     width: "100%",
     margin: "0 16px",
+    maxHeight: "90vh",
+    overflowY: "auto",
   },
   modalContent: {
     paddingRight: 0,
@@ -80,6 +83,8 @@ const SettingsModal = ({
   handleToggleModal,
   handleActionModal,
 }) => {
+  const [outbox, setOutbox] = useState(null);
+  const [previewing, setPreviewing] = useState(false);
   const id = useUserStore((state) => state.id);
   const reminders = useUserStore((state) => state.reminders);
   const updateReminders = useUserStore((state) => state.updateReminders);
@@ -96,6 +101,7 @@ const SettingsModal = ({
   const { enqueueSnackbar } = useSnackbar();
 
   const handleConfirm = async (values) => {
+    try {
     const { data } = await patchPreferences.request({
       userId: id,
       data: values,
@@ -107,7 +113,14 @@ const SettingsModal = ({
         variant: patchPreferences.success.variant,
       });
     }
+    } catch { /* The shared interceptor displays the request error. */ }
   };
+
+  async function previewReminders() {
+    setPreviewing(true);
+    try { const { data } = await ax.get("/api/demo/outbox"); setOutbox(data.messages); }
+    catch {} finally { setPreviewing(false); }
+  }
 
   useEffect(() => {
     reset({ userReminders: reminders });
@@ -130,6 +143,10 @@ const SettingsModal = ({
           <FormProvider control={control}>
             <form onSubmit={handleSubmit(handleConfirm)}>
               <CardContent className={classes.modalContent}>
+                <Typography variant="body2">Synthetic demo only. Reminder emails are previewed here and never sent.</Typography>
+                <Button disabled={previewing} onClick={previewReminders}>Preview reminders</Button>
+                {outbox && <Box role="status">{outbox.length ? outbox.map(message => <Typography key={message.id} variant="body2" style={{ marginBottom: 8 }}>{message.text}</Typography>) : 'No appointments.'}</Box>}
+                <Divider className={classes.divider} />
                 <Typography>Izbrišite korisnički račun</Typography>
                 <Typography>
                   Brisanjem korisničkog računa nestat će svi pacijenti i datumi
@@ -147,7 +164,7 @@ const SettingsModal = ({
                 <Divider className={classes.divider} />
                 <SelectInput
                   name="userReminders"
-                  label="Primanje podsjetnika: "
+                  label="Primanje podsjetnika (simulirano): "
                   errors={errors}
                   options={[
                     { value: "enabled", text: "Uključeno" },

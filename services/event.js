@@ -1,6 +1,5 @@
 import { Event } from "../entities/Event";
-import { upload } from "../../common/constants";
-import { subMinutes, subDays, formatISO, addMinutes } from "date-fns";
+import { subMinutes, subDays, addMinutes } from "date-fns";
 
 export const fetchEvents = async ({ doctorId, connection }) => {
   const queryBuilder = await connection
@@ -13,7 +12,7 @@ export const fetchEvents = async ({ doctorId, connection }) => {
     })
     .orderBy("event.created", "ASC")
     .getMany();
-  console.log(foundEvents);
+
   return foundEvents;
 };
 
@@ -43,7 +42,7 @@ export const fetchSpecifiedEvents = async ({
     )
     .orderBy("event.date", "ASC")
     .getMany();
-  console.log(foundEvents);
+
   return foundEvents;
 };
 
@@ -74,7 +73,7 @@ export const addNewEvent = async ({
     ])
     .returning("*")
     .execute();
-  console.log(savedEvent);
+
   return savedEvent;
 };
 
@@ -93,7 +92,7 @@ export const editExistingEvent = async ({
       doctorId,
     })
     .execute();
-  console.log(updatedEvent);
+
   return updatedEvent;
 };
 
@@ -111,7 +110,7 @@ export const removeExistingEvent = async ({
       doctorId,
     })
     .execute();
-  console.log(deletedEvent);
+
   return deletedEvent;
 };
 
@@ -124,7 +123,7 @@ export const removeUserEvents = async ({ doctorId, connection }) => {
       doctorId,
     })
     .execute();
-  console.log(deletedEvents);
+
   return deletedEvents;
 };
 
@@ -139,7 +138,7 @@ export const fetchExistingEvent = async ({ eventId, doctorId, connection }) => {
       doctorId,
     })
     .getOne();
-  console.log(foundEvent);
+
   return foundEvent;
 };
 
@@ -173,7 +172,7 @@ export const fetchExistingEvents = async ({
     )
     .orderBy("event.date", "ASC")
     .getMany();
-  console.log(foundEvents);
+
   return foundEvents;
 };
 
@@ -217,7 +216,7 @@ export const fetchSelectedEvents = async ({
     )
     .orderBy("event.date", "ASC")
     .getMany();
-  console.log(foundEvents);
+
   return foundEvents;
 };
 
@@ -240,6 +239,6 @@ export const fetchPreviousEvent = async ({
       }
     )
     .getOne();
-  console.log(foundEvents);
+
   return foundEvents;
 };

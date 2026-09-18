@@ -37,13 +37,6 @@ router
   }))
 ); */
 
-router.route("/events/cron").get(
-  isNotAuthenticated,
-  handler(getSelectedEvents, false, (req, res, next) => ({
-    ...req.query,
-  }))
-);
-
 router.route("/events/:eventId").delete(
   isAuthenticated,
   handler(deleteEvent, true, (req, res, next) => ({

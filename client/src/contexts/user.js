@@ -1,6 +1,7 @@
 import create from "zustand";
 
 const initialState = {
+  mode: "sample",
   authenticated: false,
   token: null,
   id: null,
@@ -47,7 +48,7 @@ const initActions = (set, get) => ({
     }));
   },
   resetUser: () => {
-    set({ ...initialState });
+    set({ ...initialState, loading: false });
   },
 });
 

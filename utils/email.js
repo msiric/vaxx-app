@@ -8,6 +8,7 @@ export const sendEmail = async ({
   emailSubject,
   emailContent,
 }) => {
+  if (process.env.DEMO_MODE === 'true') return { simulated: true };
   try {
     const smtpTransport = nodemailer.createTransport({
       host: "smtp.gmail.com",
