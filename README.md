@@ -1,5 +1,7 @@
 # Vaxx
 
+[Open the live portfolio demo](https://vaxx-app-demo.pages.dev).
+
 A portfolio demonstration of a vaccination appointment calendar originally built to help Croatian healthcare workers organize patients and first/second appointments during the COVID-19 pandemic.
 
 The restored demo preserves the Croatian calendar, patient list, booking validation, and reminder preferences. It uses fictional patients only. The historical vaccine rules are part of the software demonstration, not current medical guidance.
