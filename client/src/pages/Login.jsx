@@ -1,13 +1,4 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { makeStyles } from "@material-ui/core/styles";
-import { MeetingRoomRounded as SignupAvatar } from "@material-ui/icons";
-import React from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { useHistory, Link as RouterLink } from "react-router-dom";
-import { signupValidation } from "../../../common/validation";
-import AsyncButton from "../components/AsyncButton/index";
-import { postSignup } from "../services/auth";
-import TextInput from "../controls/TextInput/index.js";
 import {
   Avatar,
   Box,
@@ -16,6 +7,16 @@ import {
   Grid,
   Link,
 } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
+import { LockRounded as LoginAvatar } from "@material-ui/icons";
+import React from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { loginValidation } from "../../../common/validation";
+import AsyncButton from "../components/AsyncButton/index.jsx";
+import { useUserStore } from "../contexts/user.js";
+import TextInput from "../controls/TextInput/index.jsx";
+import { postLogin } from "../services/auth.js";
+import { useHistory, Link as RouterLink } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -30,39 +31,47 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Signup = () => {
+const Login = () => {
+  const setUser = useUserStore((state) => state.setUser);
+
   const { handleSubmit, formState, errors, control } = useForm({
     defaultValues: {
       userUsername: "",
-      userEmail: "",
       userPassword: "",
-      userConfirm: "",
     },
-    resolver: yupResolver(signupValidation),
+    resolver: yupResolver(loginValidation),
   });
 
   const history = useHistory();
   const classes = useStyles();
 
   const onSubmit = async (values) => {
-    const { data } = await postSignup.request({ data: values });
+    const { data } = await postLogin.request({ data: values });
 
-    if (data.message === "Success") {
-      history.push("/login");
+    if (data.user) {
+      setUser({
+        authenticated: true,
+        token: data.accessToken,
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        reminders: data.user.reminders,
+      });
     }
+    history.push("/");
   };
 
   return (
     <Container component="main" maxWidth="xs">
       <Box className={classes.paper}>
         <Avatar className={classes.avatar}>
-          <SignupAvatar />
+          <LoginAvatar />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Registracija
+          Prijava
         </Typography>
         <FormProvider control={control}>
-          <form onSubmit={handleSubmit(onSubmit)} className={classes.form}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Box>
               <TextInput
                 name="userUsername"
@@ -71,36 +80,26 @@ const Signup = () => {
                 errors={errors}
               />
               <TextInput
-                name="userEmail"
-                type="text"
-                label="Email adresa"
-                errors={errors}
-              />
-              <TextInput
                 name="userPassword"
                 type="password"
                 label="Zaporka"
-                errors={errors}
-              />
-              <TextInput
-                name="userConfirm"
-                type="password"
-                label="Ponovljena zaporka"
                 errors={errors}
               />
             </Box>
             <AsyncButton
               type="submit"
               fullWidth
+              variant="outlined"
+              color="primary"
               padding
               loading={formState.isSubmitting}
             >
-              Registriraj se
+              Prijavi se
             </AsyncButton>
             <Grid container className={classes.actions}>
               <Grid item>
-                <Link component={RouterLink} to="/login" variant="body2">
-                  Postojeći korisnik? Ulogiraj se
+                <Link component={RouterLink} to="/signup" variant="body2">
+                  Novi korisnik? Registriraj se
                 </Link>
               </Grid>
             </Grid>
@@ -111,4 +110,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Login;

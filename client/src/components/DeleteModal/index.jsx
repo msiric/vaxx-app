@@ -12,13 +12,11 @@ import {
   Typography,
 } from "@material-ui/core";
 import { DeleteRounded as DeleteIcon } from "@material-ui/icons";
-import AsyncButton from "../../components/AsyncButton/index.js";
+import AsyncButton from "../../components/AsyncButton/index.jsx";
 import { deleteEvent } from "../../services/event.js";
 import { useSnackbar } from "notistack";
+import { useUserStore } from "../../contexts/user";
 import { subMinutes } from "date-fns";
-import { useUserStore } from "../../contexts/user.js";
-import { deactivateUser } from "../../services/user.js";
-import { postLogout } from "../../services/auth.js";
 
 const useStyles = makeStyles((muiTheme) => ({
   modalWrapper: {
@@ -26,7 +24,7 @@ const useStyles = makeStyles((muiTheme) => ({
     alignItems: "center",
     justifyContent: "center",
   },
-  modalContent: {
+  modalContainer: {
     backgroundColor: muiTheme.palette.background.paper,
     boxShadow: muiTheme.shadows[5],
     padding: muiTheme.spacing(2),
@@ -35,21 +33,28 @@ const useStyles = makeStyles((muiTheme) => ({
     width: "100%",
     margin: "0 16px",
   },
+  modalContent: {
+    paddingRight: 0,
+    paddingLeft: 0,
+  },
   modalTitle: {
     paddingBottom: muiTheme.spacing(2),
   },
   modalActions: {
     display: "flex",
     justifyContent: "space-between",
-    paddingRight: 0,
-    paddingLeft: 0,
+    padding: 0,
   },
 }));
 
-const DeactivateModal = ({ modal, handleToggleModal }) => {
-  const id = useUserStore((state) => state.id);
-  const resetUser = useUserStore((state) => state.resetUser);
-
+const DeleteModal = ({
+  modal,
+  setEvents,
+  setPatients,
+  setAvailableSlot,
+  handleToggleModal,
+}) => {
+  const sample = useUserStore(state => state.mode === "sample");
   const [isDeleting, setIsDeleting] = useState(false);
   const classes = useStyles();
 
@@ -58,18 +63,29 @@ const DeactivateModal = ({ modal, handleToggleModal }) => {
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      const { data } = await deactivateUser.request({
-        userId: id,
-      });
-
-      if (data.message === "Success") {
-        await postLogout.request();
-        resetUser();
-        window.location.href = "/login";
-        enqueueSnackbar(deactivateUser.success.message, {
-          variant: deactivateUser.success.variant,
-        });
+      const { data } = await deleteEvent.request({ eventId: modal.id });
+      setEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== modal.id)
+      );
+      const deletedPatient = data.payload.patient;
+      if (deletedPatient) {
+        setPatients((prevPatients) =>
+          prevPatients.filter((patient) => patient.id !== deletedPatient)
+        );
+      } else {
+        setPatients((prevPatients) =>
+          prevPatients.map((patient) =>
+            patient.id === modal.patient
+              ? { ...patient, vaxxed: "first" }
+              : { ...patient }
+          )
+        );
       }
+      setAvailableSlot(subMinutes(new Date(modal.date), 15));
+      handleToggleModal();
+      enqueueSnackbar(deleteEvent.success.message, {
+        variant: deleteEvent.success.variant,
+      });
     } catch (err) {
     } finally {
       setIsDeleting(false);
@@ -87,11 +103,22 @@ const DeactivateModal = ({ modal, handleToggleModal }) => {
       }}
     >
       <Fade in={modal.open}>
-        <Box className={classes.modalContent}>
+        <Box className={classes.modalContainer}>
           <Typography className={classes.modalTitle}>
-            Izbrisati korisnički račun?
+            {sample ? "Pregled termina (demo)" : "Izbriši termin?"}
           </Typography>
           <Divider />
+          <CardContent className={classes.modalContent}>
+            {modal.title ? (
+              <>
+                <Typography>{modal.title}</Typography>
+                <Typography>{modal.dob || "Nema podataka"}</Typography>
+                <Typography>{modal.mbo || "Nema podataka"}</Typography>
+                <Typography>{modal.identifier}</Typography>
+                <Typography>{modal.appointment}</Typography>
+              </>
+            ) : null}
+          </CardContent>
           <CardActions className={classes.modalActions}>
             <AsyncButton
               type="submit"
@@ -101,9 +128,10 @@ const DeactivateModal = ({ modal, handleToggleModal }) => {
               padding
               onClick={handleDelete}
               loading={isDeleting}
+              disabled={sample}
               startIcon={<DeleteIcon />}
             >
-              Potvrdi
+              Izbriši
             </AsyncButton>
             <Button
               type="button"
@@ -111,7 +139,7 @@ const DeactivateModal = ({ modal, handleToggleModal }) => {
               color="dark"
               onClick={handleToggleModal}
             >
-              Odustani
+              {sample ? "Zatvori" : "Odustani"}
             </Button>
           </CardActions>
         </Box>
@@ -120,4 +148,4 @@ const DeactivateModal = ({ modal, handleToggleModal }) => {
   );
 };
 
-export default DeactivateModal;
+export default DeleteModal;

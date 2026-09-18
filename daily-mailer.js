@@ -1,5 +1,5 @@
-import { createConnection } from "typeorm";
-import cron from "node-cron";
+import { connectDatabase } from "./config/database";
+
 import { fetchSelectedEvents } from "./services/event";
 import { sendEmail } from "./utils/email";
 import { isArrayEmpty } from "./common/helpers";
@@ -14,17 +14,8 @@ import { vaccines } from "./common/constants";
 }); */
 
 const notifyUser = async () => {
-  const connection = await createConnection({
-    type: "postgres",
-    url: postgres.database,
-    logging: true,
-    synchronize: true,
-    migrations: [path.join(__dirname, "./migrations/*")],
-    entities: [path.join(__dirname, "./entities/*")],
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  });
+  if (process.env.DEMO_MODE === 'true') throw new Error('Demo reminders are previews in /api/demo/outbox; no email is sent.');
+  const connection = await connectDatabase();
   const newDate = new Date();
   const patientDate = add(newDate.setHours(1, 0, 0, 0), { days: 1 });
   const foundUsers = await fetchUsers({ connection });
@@ -53,4 +44,4 @@ const notifyUser = async () => {
     }
   }
 };
-notifyUser();
+notifyUser().catch(() => { console.error("Reminder job failed"); process.exitCode = 1; });

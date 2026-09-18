@@ -1,4 +1,4 @@
-import { ax } from "../Interceptor.js";
+import { ax } from "../Interceptor.jsx";
 
 export const postLogin = {
   request: async ({ data }) => await ax.post("/api/auth/login", data),

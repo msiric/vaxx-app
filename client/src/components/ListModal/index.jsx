@@ -13,7 +13,7 @@ import {
   TextField,
 } from "@material-ui/core";
 import { getAll } from "../../services/all.js";
-import LoadingSpinner from "../LoadingSpinner/index.js";
+import LoadingSpinner from "../LoadingSpinner/index.jsx";
 import { vaccines } from "../../../../common/constants.js";
 import { format } from "date-fns";
 
@@ -143,9 +143,11 @@ const ListModal = ({
 
   const fetchList = async () => {
     handleLoadingModal();
-    const { data } = await getAll.request();
-    handleSetList(data);
-    setResults(data);
+    try {
+      const { data } = await getAll.request();
+      handleSetList(data);
+      setResults(data);
+    } catch { handleSetList([]); setResults([]); }
   };
 
   useEffect(() => {
@@ -197,7 +199,7 @@ const ListModal = ({
                 <tbody className={!results.length ? classes.tableBody : ""}>
                   {results.length ? (
                     results.map((item) => (
-                      <tr className={classes.tableRow}>
+                      <tr key={item.name} className={classes.tableRow}>
                         <td className={classes.tableData} data-label="Ime">
                           {item.name}
                         </td>
@@ -235,11 +237,7 @@ const ListModal = ({
                             </thead>
                             <tbody>
                               {item.events.map((event, index) => (
-                                <>
-                                  {index % 2 !== 0 && (
-                                    <Divider className={classes.eventDivider} />
-                                  )}
-                                  <tr className={classes.eventRow}>
+                                  <tr key={`${event.date}:${event.event}`} className={classes.eventRow}>
                                     <td
                                       className={classes.tableData}
                                       data-label="Datum"
@@ -263,7 +261,6 @@ const ListModal = ({
                                       {event.event}
                                     </td>
                                   </tr>
-                                </>
                               ))}
                             </tbody>
                           </table>
@@ -271,9 +268,7 @@ const ListModal = ({
                       </tr>
                     ))
                   ) : (
-                    <div className={classes.noResults}>
-                      Nema rezultata pretrage
-                    </div>
+                    <tr><td colSpan={6}>Nema rezultata pretrage</td></tr>
                   )}
                 </tbody>
               </table>

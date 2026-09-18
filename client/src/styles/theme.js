@@ -1,6 +1,6 @@
-import { createMuiTheme } from "@material-ui/core/styles";
+import { createTheme } from "@material-ui/core/styles";
 
-export const vaxxedTheme = createMuiTheme({
+export const vaxxedTheme = createTheme({
   typography: {
     fontFamily: [
       "Poppins",

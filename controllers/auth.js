@@ -110,7 +110,8 @@ export const postLogIn = async ({
   };
 };
 
-export const postLogOut = ({ res, connection }) => {
+export const postLogOut = async ({ res, userId, connection }) => {
+  await connection.getRepository('User').increment({ id: userId }, 'jwtVersion', 1);
   return logUserOut(res);
 };
 

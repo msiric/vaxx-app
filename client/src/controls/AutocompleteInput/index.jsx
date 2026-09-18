@@ -21,7 +21,7 @@ const Input = ({
   return (
     <SearchableSelect
       {...other}
-      value={value ? options.find((item) => item.value === value) : ""}
+      value={value ? options.find((item) => item.value === value) || null : null}
       getOptionLabel={(option) => option.text}
       onChange={(e, item) => setValue(name, item ? item.value : "")}
       openOnFocus

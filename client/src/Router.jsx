@@ -1,9 +1,9 @@
 import React, { lazy, Suspense } from "react";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
-import LoadingSpinner from "./components/LoadingSpinner/index.js";
+import LoadingSpinner from "./components/LoadingSpinner/index.jsx";
 import { useUserStore } from "./contexts/user.js";
-import AuthLayout from "./layouts/AuthLayout.js";
-import MainLayout from "./layouts/MainLayout.js";
+import AuthLayout from "./layouts/AuthLayout.jsx";
+import MainLayout from "./layouts/MainLayout.jsx";
 import history from "./utils/history.js";
 
 const routes = [
@@ -98,7 +98,7 @@ const AppRouter = () => {
                   component={Component}
                 />
               ))}
-              <Redirect to="/404" />
+              <Redirect to="/" />
             </Switch>
           );
         }}

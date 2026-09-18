@@ -41,6 +41,9 @@ export class User extends BaseEntity {
   @Column({ default: 0 })
   jwtVersion: number;
 
+  @Column({ type: "timestamptz", nullable: true })
+  demoExpiresAt: Date | null;
+
   @CreateDateColumn({ type: "timestamptz" })
   created: Date;
 
